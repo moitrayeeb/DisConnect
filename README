@@ -1,0 +1,154 @@
+SYSTEM REQUIREMENTS FOR LINUX (UNIX based systems)
+**************************************************
+
+	* Perl 5.10 and above
+
+	* GNU C++ compiler (g++)
+
+*********************************************************************
+
+INSTALLATION AND USAGE ON LINUX
+********************************
+
+	* Extract the downloaded file from the command line:
+             tar -zxvf DisConnect.tar.gz
+
+	* cd DisConnect_Linux
+
+	* sh run.sh
+
+	* Key in the inputs as prompted    
+*********************************************************************
+
+INPUT/OUTPUT OPTIONS FOR LINUX
+******************************
+
+Enter 1 / 2 if you are assigning proteolytic or MS2/n fragment ions respectively
+
+********************************************************************
+>> If 1 is chosen at this stage (i.e., assignment of MS data for proteolytic fragments) >>
+Before Starting: 
+	# Paste the protein sequence, ending with a * symbol, in the file "prot_seq"
+	# Put the m/z values, in the format 'm/z value'space'charge state' (e.g. 1020.2 3, where the m/z value 
+        is 1020.2 and charge state 3)in the file 'peak_mass_ms'
+
+	1. Enter the name/symbol for the protein of interest
+
+	2. Enter 1 / 2 for monoisotopic / average mass
+
+	3. Enter 1 / 2 if the protein C-terminus is Amidated / Non-amidated
+
+	4. Enter your choice of proteases
+
+	Enter 1 for Trypsin
+	Enter 2 for Trypsin-P
+	Enter 3 for V8(DE)
+	Enter 4 for V8(D)
+	Enter 5 for Asp-N
+	Enter 6 for Lys-C
+	Enter 7 for Arg-C
+	Enter 8 for CNBr
+	Enter 10 for user defined protease
+
+	5. Enter the number of additional proteases to be used
+
+	6. Enter the number of allowed proteolytic miscleavages (1-3; upto three miscleavages allowed)
+
+	7. Enter window range for match with MS data depending on the resolution of the experimental setup.
+
+	8. Results will be stored in the path ./Results_MS in the format "match_MS_protein name/symbol"  within the DisConnect_Linux folder. 
+           Also a file named "inp_MSn_match_MS_protein_name.out" will be provided for input to subsequent MSn experiments for each MS 
+	   fragment ion.
+
+********************************************************************
+
+>> If 2 is chosen at this stage (i.e., assignment of MS2/n data) >>
+#Before Starting: 
+	# Put the m/z values of the fragment ions, in the format 'm/z value'space'charge state' (e.g. 1020.2 3, where the 
+	  m/z value is 1020.2 and charge state 3)in the file 'peak_mass_ms2' (for MS2) or 'peak_mass_msn' (for MSn)
+
+	1. Enter 1 / 2 for monoisotopic / average mass
+
+	2. Enter 1 / 2 if you are calculating on whole sequence (MS2) / daughter fragments (MSn; n>2)
+
+		If Step 2 = (1) ---> Enter the complete polypeptide sequence: 	(Polypeptide sequence can be entered using 
+										the standard one letter codes. For peptide 
+										containing multiple chains, like insulin, 
+										a letter X should be entered between the two 
+										chains(e.g If a peptide conatins two 
+										polypeptide chains with sequence GVCSF and 
+										RLTCY then the input is GVCSFXRLTCY). For 
+										user benefit, if these peptides are results 
+										of proteolytic digestion then an input file 
+										in the Result_MS folder is created, named 
+										"inp_MSn_match_MS_protein name.out", that 
+										conatins the peptide sequence in the required 
+										format for the MS2 analysis. The user can copy 
+										the respective sequence from there and paste it) 																																					   
+
+		If Step 2 = (2) ---> Enter the complete polypeptide sequence: (As above)
+                     		     Enter the fragment polypeptide sequence:	(Format for this input sequence is given 
+										inside the Resut_MSn folder, termed as
+ 										inp_Result_MSn_rigorous/smart_Entered complete/
+										fragment sequence. This is obtained during the
+										the structure determination of the parent ion from
+										the preceeding stage of MS/MS ions. 
+										Copy the corresponding structure of the ion 
+										undergoing MSn fragmentation from this file).
+
+	3. Enter 1 / 2 for smart / rigorous mode of calculation (Smart mode considers only the Cys residue mass values 
+								of 135 & 69 Da, and rigorous considers all the four 
+								possible values of 101, 103, 135, 69. Users are advised 
+								to use Smart mode for posstiive ion CID fragmentation, 
+								as it is the prevalent mode of fragmentation under this 
+								condition).
+
+	4. Enter the mass error tolerance based on the resolution of the experimantal setup
+
+	5. Enter 1/2/3/4/5 for normal peptide fragments/fragments with CO loss/fragments with H2O loss/fragments with NH3 loss/fragments with NH3+CO loss
+	
+	6. Depending on the number of C-termini in the sequence (say x) the code will ask for the amidated(enter 16) / non-amidated(enter 17) status for each C-term
+	   
+	   Enter mass to be added for C-term 1 status
+	   .
+	   .
+	   .
+	   Enter mass to be added for C-term x status
+
+	7. Enter 1/2 for ion trap/ no ion trap filtering 
+	
+	8. Results will be stored in the path ./Results_MSn in the format "Result_MS2/n_smart/rigorous_Entered complete/fragment sequence/results.out"  
+	   within the DisConnect_Linux folder.
+
+	9. For MSn experiments, the input parent fragment ion structure needs to be inserted twice. 
+	   
+	   (a)		At first, at Step 2(2) stage. Here the input ion has to retain a numbering scheme (which has been removed from the 
+	   final output for the clarity of presentation) for technical purposes. An output file named "inp_Result_MSn_smart/rigorous_Entered complete/
+	   fragment sequence" is also given within the Results_MSn folder, retaining this numbering scheme for the fragment ions. 
+	   For any MSn experiments, the input of the corresponding parent ion structure should be taken from this output file. 
+	   It is to be noted that this file contains all the ion structures, without ion trap filtering. The user need
+	   to select the corresponding numbered structure of the ion shown in the result file "Result_*".
+
+	   (b) 		Next, it needs to be inserted again after Step 7. Here, the Input should be in the output fromat and thus can directly be copied from the 
+	   MS2 output file, termed as "Result_MS2/n_smart/rigorous_Entered complete/fragment sequence/results.out". 
+		
+
+
+##########################################################################################################################################
+
+All the benchmark data discussed in text are given the folder ./benchmark-data
+
+For more details refer to the Methods in the Documentation folder and the reference given below. The program package DisConnect is distributed under the BSD License (see License.txt).
+
+If you are using this package, please also refer to (Rapid Mass Spectrometric Determination of Disulfide Connectivity in Peptides and Proteins. Bhattacharyya M, Gupta K, Gowd KH, Balaram P , Mol. BioSyst.,2013,XX,XX-XX)
+
+Please contact the following in case of any difficulties:
+
+moitrayeebhattacharyya@gmail.com
+talkingtothekg@gmail.com
+
+Thank you for using DisConnect !!!
+
+
+
+
