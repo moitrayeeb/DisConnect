@@ -98,12 +98,18 @@ my @ele_delim = ();
 my @peptides = ();
 my @pep_mass = ();
 my @cys_num = ();
+my @off1 = ();
+my @off2 = ();
+my %offset1 = ();
+my %offset2 = ();
 my %peptide_m = ();
 my %cys_count = ();
 my %peptide_map = ();
 my %conflict_list = ();
 my %conflict_map = ();
+my $neg_seq = 0;
 
+# Parse arguments and assign to variables
 $filename = $opts{f} if(defined $opts{f} && -f $opts{f});
 $delim = $opts{d} if(defined $opts{d});
 @ele_delim=split('',$delim);
@@ -117,47 +123,77 @@ $limit = $opts{l};
 die usage if( ! defined $filename || ! defined $delim); 
 
 
+# Open the fil_pep_cys.out (contains string of characters in every line, which are to be combined) 
 my $fh;
 open $fh, '<' , "$filename" || die "Error: opening file $filename : $! \n";
 
+# Parse the file and gather all the information in it in the arrays
+# File format - 3 columns:
+#    <string contains peptides sequence>    <mass of peptide sequence>     <number of cystines>
 while( my $line = <$fh>)
 {
-	chomp $line;
-	my @flds = trim split(/\s+/, $line);
-	push @peptides , uc $flds[0] if( @flds && scalar @flds > 1 && $flds[0] =~ /^[A-Z]+$/i);
+ 	# remove new lines, spaces, etc. from the end
+	chomp $line;     
+	my @flds = trim split(/\s+/, $line); 
+
+	# Add the  
+	push @peptides, uc $flds[0] if( @flds && scalar @flds > 1 && $flds[0] =~ /^[A-Z]+$/i);
 	push @pep_mass, $flds[1] if ( @flds && scalar @flds > 1 );
 	push @cys_num, $flds[2] if ( @flds && scalar @flds > 1 );
+	push @off1, $flds[3] if ( @flds && scalar @flds > 1 );
+	push @off2, $flds[4] if ( @flds && scalar @flds > 1 );
 }
 close $fh;
+
+
+# Assign unique tag to each peptide sequence and insert them into hashtables
+#print "Assigning unique tags and splitting with '$new_delim'\n";
 foreach my $i ( 0 .. $#peptides )
 {
 	my $tag  = TAG . "$i";
+    #  	print "\tTAG: $tag\n";
 	$peptide_map{$tag} = $peptides[$i]; 
 	$peptide_m{$tag} = $pep_mass[$i];
 	$cys_count{$tag} = $cys_num[$i]; 
-#	print "$peptide_m{$tag}\n";
+	$offset1{$tag} = $off1[$i];
+	$offset2{$tag} = $off2[$i];
+#	print "\t\tpeptide_map\{\$tag\} = $peptide_map{$tag}\n";
+
+	# Split the sequence into individual peptides and put them into a second level map
 	$conflict_list{$tag} = {};
 	my @localsplits = split( /$new_delim/ , $peptides[$i]);
 	foreach (@localsplits)
 	{
-#		print $_,"\n";
+#		print "\t\t\tsplit = $_\n";
 		$conflict_list{$tag}{$_} = 1;
 	}
 }
 
+# For each peptide sequence  
 foreach my $tag_i ( keys %peptide_map )
 {
 	$conflict_map{$tag_i} = {};
 	foreach my $tag_j ( keys %peptide_map )
 	{
 		next if( "$tag_i" eq "$tag_j");
-		foreach my $str ( keys %{ $conflict_list{$tag_i} } )
+		my ($start_offset_i, $start_offset_j, $end_offset_i, $end_offset_j);
+		$start_offset_i = $offset1{$tag_i};
+		$start_offset_j = $offset1{$tag_j};
+		$end_offset_i = $offset2{$tag_i};
+		$end_offset_j = $offset2{$tag_j};
+
+		if ( ($start_offset_j >= $start_offset_i && $start_offset_j <= $end_offset_i) || ($start_offset_i >= $start_offset_j && $start_offset_i <= $end_offset_j)) 
 		{
-			if( $peptide_map{$tag_j} =~ /^$str/ )
-			{
-				$conflict_map{$tag_i}{$tag_j} = 1;
-			}
-		}
+			$conflict_map{$tag_i}{$tag_j} = 1;
+		}	
+			
+		# foreach my $str ( keys %{ $conflict_list{$tag_i} } )
+		#{
+		#	if( $peptide_map{$tag_j} =~ /^$str/ )
+		#	{
+		#		$conflict_map{$tag_i}{$tag_j} = 1;
+		#	}
+		#}
 	}
 }
 
@@ -186,7 +222,8 @@ foreach my $tag ( sort { substr($a,1) <=> substr($b,1)} keys %peptide_map )
 	}
 }
 my $ii;my @result_str1 = (); 
-#print "$sstr\n";
+
+$tuple=$#bag+1;
 
 for ($ii=1;$ii<=$tuple;$ii++)
 {
@@ -197,9 +234,10 @@ for ($ii=1;$ii<=$tuple;$ii++)
 	push (@result_str1,@result_str);
 }
 
+
 foreach my $str(@result_str1)
 	{
-#		print $str,"\n"; 
+	#	print $str,"\n"; 
 		my $t = TAG;
    		my @elems = map { TAG . $_ } trim split( /$t/ ,$str);
 		recursion(\%map,\%peptide_map,\@elems,0,'',\%peptide_m,0,$limit,\%cys_count,0);

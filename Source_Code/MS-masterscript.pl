@@ -124,6 +124,7 @@ sub add_proteases
 sub prot_digest
 {
 open(W,">proteo_frag.out");
+open(Woff,">offset.out");
 ##### User Input for proteolytic fragment generation #####
 print "Enter your choice of protease\n";
 print "Enter 1 for Trypsin\n";
@@ -230,7 +231,7 @@ for($j=1;$j<$len_seq;$j++)
                         $ele_seq[$j]=~tr/[A-Z]/[a-z]/;
                         @frag1=@ele_seq[$count..$j];
                         }
-                        print W @frag1,"\n";
+                        print W @frag1,"\t",$count,"\t",$j,"\n";
                         $count=$j+1;
                 }
         }
@@ -239,11 +240,11 @@ $ele_seq[$len_seq-1]=~tr/[A-Z]/[a-z]/;
 @frag1=@ele_seq[$count..$len_seq-1];
 if ($flag == 1)
 {
-	print W @frag1,"*\n";
+	print W @frag1,"*\t",$count,"\t",$len_seq-1,"\n";
 }
 else
 {
-	print W @frag1,"\n";
+	print W @frag1,"\t",$count,"\t",$len_seq-1,"\n";
 }
 }
 ####### Option 2-8 cleavage #######
@@ -265,7 +266,7 @@ for($j=1;$j<$len_seq;$j++)
                         $ele_seq[$j]=~tr/[A-Z]/[a-z]/;
                         @frag1=@ele_seq[$count..$j];
                         }
-                        print W @frag1,"\n";
+                        print W @frag1,"\t",$count,"\t",$j,"\n";
                         $count=$j+1;
                 }
                 else
@@ -283,7 +284,7 @@ for($j=1;$j<$len_seq;$j++)
                         		$ele_seq[$j-1]=~tr/[A-Z]/[a-z]/;
                         		@frag1=@ele_seq[$count..$j-1];
                         	}
-                        	print W @frag1,"\n";
+                        	print W @frag1,"\t",$count,"\t",$j-1,"\n";
                         	$count=$j;
 #			}
                 }
@@ -294,11 +295,11 @@ $ele_seq[$len_seq-1]=~tr/[A-Z]/[a-z]/;
 @frag1=@ele_seq[$count..$len_seq-1];
 if ($flag == 1)
 {
-	print W @frag1,"*\n";
+	print W @frag1,"*\t",$count,"\t",$len_seq-1,"\n";
 }
 else
 {
-	print W @frag1,"\n";	
+	print W @frag1,"\t",$count,"\t",$len_seq-1,"\n";	
 }
 }
 
@@ -332,7 +333,7 @@ for($j=1;$j<$len_seq;$j++)
                         $ele_seq[$j]=~tr/[A-Z]/[a-z]/;
                         @frag1=@ele_seq[$count..$j];
                         }
-                        print W @frag1,"\n";
+                        print W @frag1,"\t",$count,"\t",$j,"\n";
                         $count=$j+1;
                 }
 		else
@@ -350,7 +351,7 @@ for($j=1;$j<$len_seq;$j++)
                         		$ele_seq[$j-1]=~tr/[A-Z]/[a-z]/;
                         		@frag1=@ele_seq[$count..$j-1];
                         	}
-                        	print W @frag1,"\n";
+                        	print W @frag1,"\t",$count,"\t",$j-1,"\n";
                         	$count=$j;
 #			}
                 }
@@ -359,11 +360,12 @@ for($j=1;$j<$len_seq;$j++)
 }
 $ele_seq[$len_seq-1]=~tr/[A-Z]/[a-z]/;
 @frag1=@ele_seq[$count..$len_seq-1];
-print W @frag1,"*\n";
+print W @frag1,"*\t",$count,"\t",$len_seq-1,"\n";
 }
 $count=0;
 }
 close(W);
+close(Woff);
 $comp .= $compare1;
 return();
 }
@@ -421,7 +423,7 @@ else
 #######################################################################################
 
 ##### Separating the proteolytic peptides with and without Cys #####
-my $line2; my $nium_cys; my $r=0; my $r1; my %mass=(); my @ele_frag=(); my $r2; my $sum; my $cys_counter;
+my $line2; my $num_cys; my $r=0; my $r1; my %mass=(); my @ele_frag=(); my $r2; my $sum; my $cys_counter;
 
 open(W,">pep_nocys.out");
 open(W1,">pep_cys.out");
@@ -438,11 +440,13 @@ foreach $line2(@hold_mass)
         @mass_val=split('	',$line2);
         $mass{$mass_val[0]}=$mass_val[1];
 }
-foreach $line2 (@hold1)
+foreach $tmp_off (@hold1)
 {
 	$sum=0;
-	$line2=~s/\n//g;
-	my $apo=$line2;
+	$tmp_off=~s/\n//g;
+	@tmp_off1=split('\t',$tmp_off);
+	my $apo=$tmp_off1[0];
+	$line2=$tmp_off1[0];
 	$line2=~s/\*//g;
 	$num_cys=$apo=~s/C/$r/gi;
 	if ($num_cys eq "")
@@ -460,7 +464,7 @@ foreach $line2 (@hold1)
 		{
 			$sum=$sum-1;
 		}
-		print W "$line2	$sum	$num_cys\n";
+		print W "$line2	$sum	$num_cys	$tmp_off1[1]	$tmp_off1[2]\n";
 	}
 	else
 	{
@@ -477,7 +481,7 @@ foreach $line2 (@hold1)
                 {
                         $sum=$sum-1;
                 }
-                print W1 "$line2	$sum	$num_cys\n";
+                print W1 "$line2	$sum	$num_cys	$tmp_off1[1]	$tmp_off1[2]\n";
 	}
 }
 #print $cys_counter,"\n";
@@ -495,7 +499,7 @@ close(Read);
 foreach (@hold)
 {
 #       print $_,"\n";
-        ($seq,$weight,$cys_no) = split; # get score
+        ($seq,$weight,$cys_no,$off1,$off2) = split; # get score
         $weight{$_} = $weight; # record it
 }
 @sort_hold = sort {
@@ -518,10 +522,10 @@ foreach $line(@sort_hold)
         $line=~s/\n//g;
         @var=split('\t',$line);
         $sum=$sum+$var[1];
+#	print $sum,"\n";
         if (($sum >= $sort_hold1[$len1-1]) || ($sum >= ($sort_hold1[$len1-1]-1)))
         {
 		$cutoff_len=$i;
-#                print $i,"\n";
                 last;
         }
 }
@@ -529,7 +533,6 @@ if (($miscleav > 0) && ($cutoff_len > 4))
 {
 	$cutoff_len=4;
 }
-#print $cutoff_len,"\n";
 
 ###### Filtering pep_cys.out based on maximum MS #########
 
@@ -546,6 +549,7 @@ foreach $line3 (@hold)
 }
 close(W2);
 
+
 ###### Getting the combination of Cys containing proteolytic fragments to match with MS data ######
 
 ##### Generating the possible combinations of Cys containing proteolytic fragments ######
@@ -553,6 +557,7 @@ $tmp_cut = $sort_hold1[$len1-1];
 $tmp_cut=~s/\n//g;
 $tmp_cut=~s/\s+//g;
 $tmp_cut=$tmp_cut+100;
+#print "perl resolv_conflict.pl -f fil_pep_cys.out -d $comp -n $cutoff_len -l $tmp_cut > pep_comb_MS\n";
 readpipe ("perl resolv_conflict.pl -f fil_pep_cys.out -d $comp -n $cutoff_len -l $tmp_cut > pep_comb_MS");
 readpipe ("cat pep_comb_MS pep_nocys.out > match_MS.inp");
 
